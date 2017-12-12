@@ -5,6 +5,20 @@ s.parentNode.removeChild(s);*/
 
 
 blockedUsers = [];
+blockedTypes = [];
+
+regexes = {block1: /\b[A-Z]{2,}\b.+\n\s*\n/g }
+
+
+
+function loadBlockedTypes(){
+  chrome.storage.sync.get('blockedTypes',function(data){
+    if (data.blockedTypes){
+      blockedTypes = data.blockedTypes;
+      runBlocked();
+    }
+  });
+}
 
 
 function loadBlockedUsers(){
@@ -17,12 +31,15 @@ function loadBlockedUsers(){
       runBlocked();
     });
   });
-
 }
 
 function saveBlockedUsers(){
-  console.log(blockedUsers);
   chrome.storage.sync.set({"blockedUsers": blockedUsers});
+}
+
+function saveBlockedTypes(data){
+  console.log('saving blockedTypes: '+data);
+  chrome.storage.sync.set({"blockedTypes": data});
 }
 
 function addBlockedUser(userString){
@@ -34,6 +51,22 @@ function runBlocked(){
   for (i = 0; i < blockedUsers.length; i++) {
     blockSingleUser(blockedUsers[i]);
   }
+  console.log(blockedTypes);
+  for (var key in blockedTypes) {
+    console.log('checking '+key);
+   if (blockedTypes.hasOwnProperty(key)) {
+      var blockname = key;
+      var enabled = blockedTypes[key];
+      if (enabled == 1){
+        console.log('filtering for '+regexes[key]);
+        var regex = new RegExp(regexes[key]); // expression here
+        $("span").filter(function () {
+            return $(this).html().match(regexes[key]);
+        }).parents('article').remove();
+      }
+   }
+}
+
 }
 
 function blockSingleUser(userString){
@@ -58,7 +91,20 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         loadBlockedUsers();
         sendResponse({value: clickedEl});
     }
+    if (request == "getTypes"){
+        chrome.runtime.sendMessage({blockedTypes: blockedTypes}, function(response) {
+            //console.log(response)
+        });
+    }
+    else {
+      //blocktypes data
+      console.log(request);
+      blockedTypes = request;
+      console.log(blockedTypes);
+      saveBlockedTypes(request);
+    }
 });
 
 
   loadBlockedUsers();
+  loadBlockedTypes();

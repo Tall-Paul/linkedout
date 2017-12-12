@@ -17,9 +17,9 @@
     "storage"
   ],
   "background": {
-      "scripts": ["menu.js"]
+      "scripts": ["jquery.js","menu.js","popup.js"]
     },
-    "web_accessible_resources": ["inject.js"],
+    "web_accessible_resources": ["popup.js","jquery.js"],
     "content_scripts": [{
       "matches": ["https://www.linkedin.com/*"],
       "js": ["jquery.js","contentscript.js"]
